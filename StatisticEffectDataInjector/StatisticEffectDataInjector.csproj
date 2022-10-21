@@ -62,6 +62,10 @@
   <PropertyGroup>
     <PostBuildEvent>if exist "$(BattleTechGameDir)Mods\ModTek\Injectors" (
   copy /Y "$(TargetPath)" "$(BattleTechGameDir)Mods\ModTek\Injectors"
+)
+if exist "$(RogueTechRepo)ModTek\Injectors" (
+  echo %25BattleTechGameDir%25
+  copy /Y "$(TargetPath)" "$(RogueTechRepo)ModTek\Injectors"
 )</PostBuildEvent>
   </PropertyGroup>
 </Project>
