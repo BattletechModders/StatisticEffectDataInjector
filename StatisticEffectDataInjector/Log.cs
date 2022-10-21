@@ -12,15 +12,15 @@ namespace StatisticEffectDataInjector {
     private string m_logfile;
     private SpinLock spinlock;
     private StringBuilder m_cache = null;
-    private StreamWriter m_fs = null;
+    //private StreamWriter m_fs = null;
     public LogFile(string name) {
       try {
         this.spinlock = new SpinLock();
         this.m_cache = new StringBuilder();
         this.m_logfile = Path.Combine(Log.BaseDirectory, name);
         File.Delete(this.m_logfile);
-        this.m_fs = new StreamWriter(this.m_logfile);
-        this.m_fs.AutoFlush = true;
+        //this.m_fs = new StreamWriter(this.m_logfile);
+        //this.m_fs.AutoFlush = true;
       } catch (Exception) {
 
       }
@@ -30,8 +30,8 @@ namespace StatisticEffectDataInjector {
       try {
         if (spinlock.IsHeldByCurrentThread == false) { spinlock.Enter(ref locked); }
         if (this.m_cache.Length > 0) {
-          this.m_fs.Write(this.m_cache.ToString());
-          this.m_fs.Flush();
+          //this.m_fs.Write(this.m_cache.ToString());
+          //this.m_fs.Flush();
           this.m_cache.Length = 0;
         }
       }finally{
@@ -39,18 +39,20 @@ namespace StatisticEffectDataInjector {
       }
     }
     public void W(string line, bool isCritical = false) {
-      bool locked = false;
+      //bool locked = false;
       try {
-        if (spinlock.IsHeldByCurrentThread == false) { spinlock.Enter(ref locked); }
-        m_cache.Append(line);
+        Console.Write(line);
+        //if (spinlock.IsHeldByCurrentThread == false) { spinlock.Enter(ref locked); }
+        //m_cache.Append(line);
       } finally {
-        if (locked) { spinlock.Exit(); }
+        //if (locked) { spinlock.Exit(); }
       }
-      if (isCritical) { this.flush(); };
-      if (m_logfile.Length > Log.flushBufferLength) { this.flush(); };
+      //if (isCritical) { this.flush(); };
+      //if (m_logfile.Length > Log.flushBufferLength) { this.flush(); };
     }
     public void WL(string line, bool isCritical = false) {
-      line += "\n"; this.W(line, isCritical);
+      Console.WriteLine(line);
+      //line += "\n"; this.W(line, isCritical);
     }
     public void W(int initiation, string line, bool isCritical = false) {
       string init = new string(' ', initiation);
@@ -96,7 +98,7 @@ namespace StatisticEffectDataInjector {
     public static LogFile Err { get { return Log.logs[LogFileType.Main]; } }
     public static void InitLog() {
       Log.logs.Add(LogFileType.Main, new LogFile("StatisticEffectDataInjector_main_log.txt"));
-      Log.flushThread.Start();
+      //Log.flushThread.Start();
     }
   }
 
