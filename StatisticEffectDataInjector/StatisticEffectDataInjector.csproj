@@ -62,6 +62,6 @@
   <Target Name="AfterBuild">
 		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BattleTechGameDir)\Mods\ModTek\Injectors" Condition="'$(BattleTechGameDir)' != '' And Exists('$(BattleTechGameDir)\Mods\ModTek\Injectors')" />
 		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BattleTechGameDir)\Mods_CBDE\ModTek\Injectors" Condition="'$(BattleTechGameDir)' != '' And Exists('$(BattleTechGameDir)\Mods_CBDE\ModTek\Injectors')" />
-		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(RogueTechRepo)\Mods\ModTek\Injectors" Condition="'$(RogueTechRepo)' != '' And Exists('$(RogueTechRepo)\Mods\ModTek\Injectors')" />
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(RogueTechRepo)\ModTek\Injectors" Condition="'$(RogueTechRepo)' != '' And Exists('$(RogueTechRepo)\ModTek\Injectors')" />
   </Target>
 </Project>
