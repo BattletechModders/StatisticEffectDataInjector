@@ -4,13 +4,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Mono.Cecil.Cil;
 
 namespace StatisticEffectDataInjector {
   public class Settings {
-    public bool debugLog { get; set; } = true;
   }
   internal static class Injector {
     public static Settings settings { get; set; } = new Settings();
@@ -123,7 +120,6 @@ namespace StatisticEffectDataInjector {
     }
 
     public static void Inject(IAssemblyResolver resolver) {
-      Log.BaseDirectory = AssemblyDirectory;
       Log.InitLog();
       Log.Err?.TWL(0, $"StatisticEffectDataInjector initing {Assembly.GetExecutingAssembly().GetName().Version}", true);
       try {
