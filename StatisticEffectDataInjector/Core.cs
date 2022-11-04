@@ -1,31 +1,19 @@
 ﻿using Mono.Cecil;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using Mono.Cecil.Cil;
 
 namespace StatisticEffectDataInjector {
-  public class Settings {
-  }
   internal static class Injector {
-    public static Settings settings { get; set; } = new Settings();
-    public static string AssemblyDirectory {
-      get {
-        string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-        UriBuilder uri = new UriBuilder(codeBase);
-        string path = Uri.UnescapeDataString(uri.Path);
-        return Path.GetDirectoryName(path);
-      }
-    }
     internal static MethodReference HBS_Util_Serialization_StorageSpaceString { get; set; } = null;
     internal static MethodReference HBS_Util_SerializationStream_PutString { get; set; } = null;
     internal static MethodReference HBS_Util_SerializationStream_GetString { get; set; } = null;
     public static void InjectSize(TypeDefinition StatisticEffectDataType, FieldDefinition field) {
       MethodDefinition sizeMethod = StatisticEffectDataType.Methods.First(x => x.Name == "Size");
       if (sizeMethod == null) {
-        Log.Err?.WL(1, "can't find BattleTech.StatisticEffectData.Size method", true);
+        Log.Error?.WL(1, "can't find BattleTech.StatisticEffectData.Size method");
         return;
       }
       Instruction targetInstruction = null;
@@ -35,7 +23,7 @@ namespace StatisticEffectDataInjector {
 
       }
       if (targetInstruction == null) {
-        Log.Err?.WL(1, "can't find return opcode", true);
+        Log.Error?.WL(1, "can't find return opcode");
         return;
       }
       //IL_00b6: ldarg.0      // this
@@ -47,17 +35,17 @@ namespace StatisticEffectDataInjector {
       body.InsertAfter(targetInstruction, Instruction.Create(OpCodes.Call, HBS_Util_Serialization_StorageSpaceString));
       body.InsertAfter(targetInstruction, Instruction.Create(OpCodes.Ldfld, field));
       body.InsertAfter(targetInstruction, Instruction.Create(OpCodes.Ldarg_0));
-      Log.M?.TWL(0, $"InjectSize {field.Name} success");
+      Log.Debug?.TWL(0, $"InjectSize {field.Name} success");
       for (var i = 0; i < sizeMethod.Body.Instructions.Count; i++) {
         var instruction = sizeMethod.Body.Instructions[i];
-        Log.M?.WL(1, instruction.OpCode + ":" + (instruction.Operand == null ? "null" : instruction.Operand.ToString()));
+        Log.Debug?.WL(1, instruction.OpCode + ":" + (instruction.Operand == null ? "null" : instruction.Operand.ToString()));
       }
-      Log.M?.WL(0, $"method end", true);
+      Log.Debug?.WL(0, $"method end");
     }
     public static void InjectSave(TypeDefinition StatisticEffectDataType, FieldDefinition field) {
       MethodDefinition saveMethod = StatisticEffectDataType.Methods.First(x => x.Name == "Save");
       if (saveMethod == null) {
-        Log.Err?.WL(1, "can't find BattleTech.StatisticEffectData.Size method", true);
+        Log.Error?.WL(1, "can't find BattleTech.StatisticEffectData.Size method");
         return;
       }
       Instruction targetInstruction = null;
@@ -67,7 +55,7 @@ namespace StatisticEffectDataInjector {
 
       }
       if (targetInstruction == null) {
-        Log.Err?.WL(1, "can't find return opcode", true);
+        Log.Error?.WL(1, "can't find return opcode");
         return;
       }
       //IL_00c1: ldarg.1      // 'stream'
@@ -79,17 +67,17 @@ namespace StatisticEffectDataInjector {
       body.InsertAfter(targetInstruction, Instruction.Create(OpCodes.Ldfld, field));
       body.InsertAfter(targetInstruction, Instruction.Create(OpCodes.Ldarg_0));
       body.InsertAfter(targetInstruction, Instruction.Create(OpCodes.Ldarg_1));
-      Log.M?.TWL(0, $"InjectSave {field.Name} success");
+      Log.Debug?.TWL(0, $"InjectSave {field.Name} success");
       for (var i = 0; i < saveMethod.Body.Instructions.Count; i++) {
         var instruction = saveMethod.Body.Instructions[i];
-        Log.M?.WL(1, instruction.OpCode + ":" + (instruction.Operand == null ? "null" : instruction.Operand.ToString()));
+        Log.Debug?.WL(1, instruction.OpCode + ":" + (instruction.Operand == null ? "null" : instruction.Operand.ToString()));
       }
-      Log.M?.WL(0, $"method end", true);
+      Log.Debug?.WL(0, $"method end");
     }
     public static void InjectLoad(TypeDefinition StatisticEffectDataType, FieldDefinition field) {
       MethodDefinition loadMethod = StatisticEffectDataType.Methods.First(x => x.Name == "Load");
       if (loadMethod == null) {
-        Log.Err?.WL(1, "can't find BattleTech.StatisticEffectData.Size method", true);
+        Log.Error?.WL(1, "can't find BattleTech.StatisticEffectData.Size method");
         return;
       }
       Instruction targetInstruction = null;
@@ -99,7 +87,7 @@ namespace StatisticEffectDataInjector {
 
       }
       if (targetInstruction == null) {
-        Log.Err?.WL(1, "can't find return opcode", true);
+        Log.Error?.WL(1, "can't find return opcode");
         return;
       }
       //IL_00e8: ldarg.0      // this
@@ -111,21 +99,20 @@ namespace StatisticEffectDataInjector {
       body.InsertAfter(targetInstruction, Instruction.Create(OpCodes.Callvirt, HBS_Util_SerializationStream_GetString));
       body.InsertAfter(targetInstruction, Instruction.Create(OpCodes.Ldarg_1));
       body.InsertAfter(targetInstruction, Instruction.Create(OpCodes.Ldarg_0));
-      Log.M?.TWL(0, $"InjectLoad {field.Name} success");
+      Log.Debug?.TWL(0, $"InjectLoad {field.Name} success");
       for (var i = 0; i < loadMethod.Body.Instructions.Count; i++) {
         var instruction = loadMethod.Body.Instructions[i];
-        Log.M?.WL(1, instruction.OpCode + ":" + (instruction.Operand == null ? "null" : instruction.Operand.ToString()));
+        Log.Debug?.WL(1, instruction.OpCode + ":" + (instruction.Operand == null ? "null" : instruction.Operand.ToString()));
       }
-      Log.M?.WL(0, $"method end", true);
+      Log.Debug?.WL(0, $"method end");
     }
 
     public static void Inject(IAssemblyResolver resolver) {
-      Log.InitLog();
-      Log.Err?.TWL(0, $"StatisticEffectDataInjector initing {Assembly.GetExecutingAssembly().GetName().Version}", true);
+      Log.Error?.TWL(0, $"StatisticEffectDataInjector initing {Assembly.GetExecutingAssembly().GetName().Version}");
       try {
         AssemblyDefinition game = resolver.Resolve(new AssemblyNameReference("Assembly-CSharp", null));
         if (game == null) {
-          Log.Err?.WL(1, "can't resolve main game assembly", true);
+          Log.Error?.WL(1, "can't resolve main game assembly");
           return;
         }
         HBS_Util_Serialization_StorageSpaceString = game.MainModule.ImportReference(game.MainModule.GetType("HBS.Util.Serialization").Methods.First(x => x.Name == "StorageSpaceString"));
@@ -133,41 +120,41 @@ namespace StatisticEffectDataInjector {
         HBS_Util_SerializationStream_GetString = game.MainModule.ImportReference(game.MainModule.GetType("HBS.Util.SerializationStream").Methods.First(x => x.Name == "GetString"));
         TypeDefinition StatisticEffectDataType = game.MainModule.GetType("BattleTech.StatisticEffectData");
         if (StatisticEffectDataType == null) {
-          Log.Err?.WL(1, "can't resolve BattleTech.StatisticEffectData type", true);
+          Log.Error?.WL(1, "can't resolve BattleTech.StatisticEffectData type");
           return;
         }
-        Log.M?.WL(1, "fields before:");
+        Log.Debug?.WL(1, "fields before:");
         foreach (var field in StatisticEffectDataType.Fields) {
-          Log.M?.WL(2, $"{field.Name}");
+          Log.Debug?.WL(2, $"{field.Name}");
         }
         FieldDefinition statNameFieldDef = StatisticEffectDataType.Fields.First(x => x.Name == "statName");
         if (statNameFieldDef == null) {
-          Log.Err?.WL(1, "can't find BattleTech.StatisticEffectData.statName field", true);
+          Log.Error?.WL(1, "can't find BattleTech.StatisticEffectData.statName field");
           return;
         }
         List<CustomAttribute> statName_attrs = statNameFieldDef.HasCustomAttributes ? statNameFieldDef.CustomAttributes.ToList() : new List<CustomAttribute>();
 
         FieldDefinition LocationFieldDef = new FieldDefinition("Location", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(string)));
-        Log.M?.WL(1, $"BattleTech.StatisticEffectData.statName custom attributes {statName_attrs.Count}:");
+        Log.Debug?.WL(1, $"BattleTech.StatisticEffectData.statName custom attributes {statName_attrs.Count}:");
         foreach (var attr in statName_attrs) {
           LocationFieldDef.CustomAttributes.Add(attr);
-          Log.M?.WL(2, $"{attr.AttributeType.Name}");
+          Log.Debug?.WL(2, $"{attr.AttributeType.Name}");
         }
         StatisticEffectDataType.Fields.Add(
           LocationFieldDef
         );
-        Log.M?.WL(1, "fields after:");
+        Log.Debug?.WL(1, "fields after:");
         foreach (var field in StatisticEffectDataType.Fields) {
-          Log.M?.WL(2, $"{field.Name}");
+          Log.Debug?.WL(2, $"{field.Name}");
         }
-        Log.M?.WL(1, "field added successfully", true);
+        Log.Debug?.WL(1, "field added successfully");
 
         InjectSize(StatisticEffectDataType, LocationFieldDef);
         InjectSave(StatisticEffectDataType, LocationFieldDef);
         InjectLoad(StatisticEffectDataType, LocationFieldDef);
 
       } catch (Exception e) {
-        Log.Err?.TWL(0, e.ToString(), true);
+        Log.Error?.TWL(0, e.ToString());
       }
     }
   }
