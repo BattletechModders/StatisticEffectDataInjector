@@ -87,7 +87,6 @@ namespace StatisticEffectDataInjector {
       for (var i = 0; i < loadMethod.Body.Instructions.Count; i++) {
         var instruction = loadMethod.Body.Instructions[i];
         if (instruction.OpCode == OpCodes.Ret) { targetInstruction = loadMethod.Body.Instructions[i - 3]; }
-
       }
       if (targetInstruction == null) {
         Log.Error?.WL(1, "can't find return opcode");
@@ -110,10 +109,37 @@ namespace StatisticEffectDataInjector {
       Log.Debug?.WL(0, $"method end");
     }
 
+    public static void InjectStatisticEffectMethod(MethodDefinition patchingMethod) {
+      while (true) {
+        int ti = -1;
+        for (var i = 0; i < patchingMethod.Body.Instructions.Count - 3; i++) {
+          var instruction = patchingMethod.Body.Instructions[i];
+          if (instruction.OpCode != OpCodes.Ldfld) { continue; }
+          if (instruction.Operand != game.MainModule.ImportReference(game.MainModule.GetType("BattleTech.Effect").Fields.First(x => x.Name == "effectData"))) { continue; }
+          instruction = patchingMethod.Body.Instructions[i + 1];
+          if (instruction.OpCode != OpCodes.Ldfld) { continue; }
+          if (instruction.Operand != game.MainModule.ImportReference(game.MainModule.GetType("BattleTech.EffectData").Fields.First(x => x.Name == "statisticData"))) { continue; }
+          instruction = patchingMethod.Body.Instructions[i + 2];
+          if (instruction.OpCode != OpCodes.Ldfld) { continue; }
+          if (instruction.Operand != game.MainModule.ImportReference(game.MainModule.GetType("BattleTech.StatisticEffectData").Fields.First(x => x.Name == "statName"))) { continue; }
+          ti = i; break;
+        }
+        if (ti == -1) {
+          Log.Error?.WL(0, $"Can't find effectData.statisticData.statName in {patchingMethod.Name}");
+          break;
+        }
+        Log.Debug?.WL(0, $"found effectData.statisticData.statName in {patchingMethod.Name}. Replacing with modVariant.statName");
+        var body = patchingMethod.Body.GetILProcessor();
+        body.Replace(patchingMethod.Body.Instructions[ti + 0], body.Create(OpCodes.Ldfld, game.MainModule.ImportReference(game.MainModule.GetType("BattleTech.StatisticEffect").Fields.First(x => x.Name == "modVariant"))));
+        body.Replace(patchingMethod.Body.Instructions[ti + 1], body.Create(OpCodes.Ldfld, game.MainModule.ImportReference(game.MainModule.GetType("BattleTech.Variant").Fields.First(x => x.Name == "statName"))));
+        body.Replace(patchingMethod.Body.Instructions[ti + 2], body.Create(OpCodes.Nop));
+      }
+    }
+    internal static AssemblyDefinition game { get; set; } = null;
     public static void Inject(IAssemblyResolver resolver) {
       Log.Error?.TWL(0, $"StatisticEffectDataInjector initing {Assembly.GetExecutingAssembly().GetName().Version}");
       try {
-        AssemblyDefinition game = resolver.Resolve(new AssemblyNameReference("Assembly-CSharp", null));
+        game = resolver.Resolve(new AssemblyNameReference("Assembly-CSharp", null));
         if (game == null) {
           Log.Error?.WL(1, "can't resolve main game assembly");
           return;
@@ -172,6 +198,12 @@ namespace StatisticEffectDataInjector {
         InjectSize(StatisticEffectDataType, ShouldNotHaveTagsFieldDef);
         InjectSave(StatisticEffectDataType, ShouldNotHaveTagsFieldDef);
         InjectLoad(StatisticEffectDataType, ShouldNotHaveTagsFieldDef);
+
+        InjectStatisticEffectMethod(game.MainModule.GetType("BattleTech.StatisticEffect").Methods.First(x => x.Name == "OnEffectBegin"));
+        InjectStatisticEffectMethod(game.MainModule.GetType("BattleTech.StatisticEffect").Methods.First(x => x.Name == "OnEffectPhaseBegin"));
+        InjectStatisticEffectMethod(game.MainModule.GetType("BattleTech.StatisticEffect").Methods.First(x => x.Name == "OnEffectActivationEnd"));
+        InjectStatisticEffectMethod(game.MainModule.GetType("BattleTech.StatisticEffect").Methods.First(x => x.Name == "OnEffectEnd"));
+        InjectStatisticEffectMethod(game.MainModule.GetType("BattleTech.StatisticEffect").Methods.First(x => x.Name == "OnEffectTakeDamage"));
       } catch (Exception e) {
         Log.Error?.TWL(0, e.ToString());
       }
