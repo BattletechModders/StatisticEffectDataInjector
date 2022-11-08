@@ -10,6 +10,9 @@ namespace StatisticEffectDataInjector {
     internal static MethodReference HBS_Util_Serialization_StorageSpaceString { get; set; } = null;
     internal static MethodReference HBS_Util_SerializationStream_PutString { get; set; } = null;
     internal static MethodReference HBS_Util_SerializationStream_GetString { get; set; } = null;
+    internal static MethodReference HBS_Util_SerializationStream_PutBool { get; set; } = null;
+    internal static MethodReference HBS_Util_SerializationStream_GetBool { get; set; } = null;
+    internal static FieldReference HBS_Util_Serialization_STORAGE_SPACE_BOOL { get; set; } = null;
     public static void InjectSize(TypeDefinition StatisticEffectDataType, FieldDefinition field) {
       MethodDefinition sizeMethod = StatisticEffectDataType.Methods.First(x => x.Name == "Size");
       if (sizeMethod == null) {
@@ -118,6 +121,10 @@ namespace StatisticEffectDataInjector {
         HBS_Util_Serialization_StorageSpaceString = game.MainModule.ImportReference(game.MainModule.GetType("HBS.Util.Serialization").Methods.First(x => x.Name == "StorageSpaceString"));
         HBS_Util_SerializationStream_PutString = game.MainModule.ImportReference(game.MainModule.GetType("HBS.Util.SerializationStream").Methods.First(x => x.Name == "PutString"));
         HBS_Util_SerializationStream_GetString = game.MainModule.ImportReference(game.MainModule.GetType("HBS.Util.SerializationStream").Methods.First(x => x.Name == "GetString"));
+        HBS_Util_SerializationStream_PutBool = game.MainModule.ImportReference(game.MainModule.GetType("HBS.Util.SerializationStream").Methods.First(x => x.Name == "PutBool"));
+        HBS_Util_SerializationStream_GetBool = game.MainModule.ImportReference(game.MainModule.GetType("HBS.Util.SerializationStream").Methods.First(x => x.Name == "GetBool"));
+        HBS_Util_Serialization_STORAGE_SPACE_BOOL = game.MainModule.ImportReference(game.MainModule.GetType("HBS.Util.Serialization").Fields.First(x => x.Name == "STORAGE_SPACE_BOOL"));
+
         TypeDefinition StatisticEffectDataType = game.MainModule.GetType("BattleTech.StatisticEffectData");
         if (StatisticEffectDataType == null) {
           Log.Error?.WL(1, "can't resolve BattleTech.StatisticEffectData type");
@@ -135,14 +142,19 @@ namespace StatisticEffectDataInjector {
         List<CustomAttribute> statName_attrs = statNameFieldDef.HasCustomAttributes ? statNameFieldDef.CustomAttributes.ToList() : new List<CustomAttribute>();
 
         FieldDefinition LocationFieldDef = new FieldDefinition("Location", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(string)));
+        FieldDefinition ShouldHaveTagsFieldDef = new FieldDefinition("ShouldHaveTags", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(string)));
+        FieldDefinition ShouldNotHaveTagsFieldDef = new FieldDefinition("ShouldNotHaveTags", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(string)));
+        //FieldDefinition ApplyFirstOnlyFieldDef = new FieldDefinition("ApplyFirstOnly", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(bool)));
         Log.Debug?.WL(1, $"BattleTech.StatisticEffectData.statName custom attributes {statName_attrs.Count}:");
         foreach (var attr in statName_attrs) {
           LocationFieldDef.CustomAttributes.Add(attr);
+          ShouldHaveTagsFieldDef.CustomAttributes.Add(attr);
+          ShouldNotHaveTagsFieldDef.CustomAttributes.Add(attr);
           Log.Debug?.WL(2, $"{attr.AttributeType.Name}");
         }
-        StatisticEffectDataType.Fields.Add(
-          LocationFieldDef
-        );
+        StatisticEffectDataType.Fields.Add(LocationFieldDef);
+        StatisticEffectDataType.Fields.Add(ShouldHaveTagsFieldDef);
+        StatisticEffectDataType.Fields.Add(ShouldNotHaveTagsFieldDef);
         Log.Debug?.WL(1, "fields after:");
         foreach (var field in StatisticEffectDataType.Fields) {
           Log.Debug?.WL(2, $"{field.Name}");
@@ -153,6 +165,13 @@ namespace StatisticEffectDataInjector {
         InjectSave(StatisticEffectDataType, LocationFieldDef);
         InjectLoad(StatisticEffectDataType, LocationFieldDef);
 
+        InjectSize(StatisticEffectDataType, ShouldHaveTagsFieldDef);
+        InjectSave(StatisticEffectDataType, ShouldHaveTagsFieldDef);
+        InjectLoad(StatisticEffectDataType, ShouldHaveTagsFieldDef);
+
+        InjectSize(StatisticEffectDataType, ShouldNotHaveTagsFieldDef);
+        InjectSave(StatisticEffectDataType, ShouldNotHaveTagsFieldDef);
+        InjectLoad(StatisticEffectDataType, ShouldNotHaveTagsFieldDef);
       } catch (Exception e) {
         Log.Error?.TWL(0, e.ToString());
       }
