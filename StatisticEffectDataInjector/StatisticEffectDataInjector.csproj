@@ -38,9 +38,4 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="GitVersion.MsBuild" Version="5.10.3">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
 </Project>

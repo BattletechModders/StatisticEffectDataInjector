@@ -220,14 +220,11 @@ namespace StatisticEffectDataInjector {
         }
         List<CustomAttribute> duration_attrs = statNameFieldDef.HasCustomAttributes ? statNameFieldDef.CustomAttributes.ToList() : new List<CustomAttribute>();
         FieldDefinition stackId = new FieldDefinition("stackId", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(string)));
-        FieldDefinition abilifierId = new FieldDefinition("abilifierId", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(string)));
         foreach (var attr in duration_attrs) {
           stackId.CustomAttributes.Add(attr);
-          abilifierId.CustomAttributes.Add(attr);
           Log.Debug?.WL(2, $"{attr.AttributeType.Name}");
         }
         EffectDurationData.Fields.Add(stackId);
-        EffectDurationData.Fields.Add(abilifierId);
         Log.Debug?.WL(1, "fields after:");
         foreach (var field in EffectDurationData.Fields) {
           Log.Debug?.WL(2, $"{field.Name}");
@@ -236,10 +233,6 @@ namespace StatisticEffectDataInjector {
         InjectSize(EffectDurationData, stackId);
         InjectSave(EffectDurationData, stackId);
         InjectLoad(EffectDurationData, stackId);
-
-        InjectSize(EffectDurationData, abilifierId);
-        InjectSave(EffectDurationData, abilifierId);
-        InjectLoad(EffectDurationData, abilifierId);
       } catch (Exception e) {
         Log.Error?.TWL(0, e.ToString());
       }
