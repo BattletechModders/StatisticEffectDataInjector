@@ -170,7 +170,6 @@ namespace StatisticEffectDataInjector {
         FieldDefinition LocationFieldDef = new FieldDefinition("Location", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(string)));
         FieldDefinition ShouldHaveTagsFieldDef = new FieldDefinition("ShouldHaveTags", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(string)));
         FieldDefinition ShouldNotHaveTagsFieldDef = new FieldDefinition("ShouldNotHaveTags", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(string)));
-        //FieldDefinition ApplyFirstOnlyFieldDef = new FieldDefinition("ApplyFirstOnly", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(bool)));
         Log.Debug?.WL(1, $"BattleTech.StatisticEffectData.statName custom attributes {statName_attrs.Count}:");
         foreach (var attr in statName_attrs) {
           LocationFieldDef.CustomAttributes.Add(attr);
@@ -204,6 +203,43 @@ namespace StatisticEffectDataInjector {
         InjectStatisticEffectMethod(game.MainModule.GetType("BattleTech.StatisticEffect").Methods.First(x => x.Name == "OnEffectActivationEnd"));
         InjectStatisticEffectMethod(game.MainModule.GetType("BattleTech.StatisticEffect").Methods.First(x => x.Name == "OnEffectEnd"));
         InjectStatisticEffectMethod(game.MainModule.GetType("BattleTech.StatisticEffect").Methods.First(x => x.Name == "OnEffectTakeDamage"));
+
+        TypeDefinition EffectDurationData = game.MainModule.GetType("BattleTech.EffectDurationData");
+        if (EffectDurationData == null) {
+          Log.Error?.WL(1, "can't resolve BattleTech.EffectDurationData type");
+          return;
+        }
+        Log.Debug?.WL(1, "fields before:");
+        foreach (var field in EffectDurationData.Fields) {
+          Log.Debug?.WL(2, $"{field.Name}");
+        }
+        FieldDefinition duration = EffectDurationData.Fields.First(x => x.Name == "duration");
+        if (duration == null) {
+          Log.Error?.WL(1, "can't find BattleTech.EffectDurationData.duration field");
+          return;
+        }
+        List<CustomAttribute> duration_attrs = statNameFieldDef.HasCustomAttributes ? statNameFieldDef.CustomAttributes.ToList() : new List<CustomAttribute>();
+        FieldDefinition stackId = new FieldDefinition("stackId", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(string)));
+        FieldDefinition abilifierId = new FieldDefinition("abilifierId", Mono.Cecil.FieldAttributes.Public, game.MainModule.ImportReference(typeof(string)));
+        foreach (var attr in duration_attrs) {
+          stackId.CustomAttributes.Add(attr);
+          abilifierId.CustomAttributes.Add(attr);
+          Log.Debug?.WL(2, $"{attr.AttributeType.Name}");
+        }
+        EffectDurationData.Fields.Add(stackId);
+        EffectDurationData.Fields.Add(abilifierId);
+        Log.Debug?.WL(1, "fields after:");
+        foreach (var field in EffectDurationData.Fields) {
+          Log.Debug?.WL(2, $"{field.Name}");
+        }
+        Log.Debug?.WL(1, "field added successfully");
+        InjectSize(EffectDurationData, stackId);
+        InjectSave(EffectDurationData, stackId);
+        InjectLoad(EffectDurationData, stackId);
+
+        InjectSize(EffectDurationData, abilifierId);
+        InjectSave(EffectDurationData, abilifierId);
+        InjectLoad(EffectDurationData, abilifierId);
       } catch (Exception e) {
         Log.Error?.TWL(0, e.ToString());
       }
